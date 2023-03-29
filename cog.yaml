@@ -1,9 +1,10 @@
 build:
   python_version: "3.10"
   python_packages:
-    - "diffusers==0.13.1"
+    - "diffusers==0.14.0"
     - "torch==1.13.0"
     - "transformers==4.25.1"
     - "accelerate==0.15.0"
+    - "omegaconf==2.3.0"
   
 predict: "predict.py:Predictor"
