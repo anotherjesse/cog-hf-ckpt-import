@@ -55,7 +55,7 @@ def load_ckpt(
 
 
 class Predictor(BasePredictor):
-    def download_repo(self, repo_id=None, revision='main', ckpt_file=None, dest="weights"):
+    def download_repo(self, repo_id=None, revision='main', ckpt_file=None, dest="weights", float16=True):
         """Download the model weights from the given URL"""
         print("Downloading weights...")
 
@@ -63,9 +63,10 @@ class Predictor(BasePredictor):
         pipe = load_ckpt(local_ckpt_file)
         shutil.rmtree("workdir")
         pipe.save_pretrained(dest)
-        pipe = StableDiffusionPipeline.from_pretrained(dest, torch_dtype=torch.float16)
-        shutil.rmtree(dest)
-        pipe.save_pretrained(dest)
+        if float16:
+            pipe = StableDiffusionPipeline.from_pretrained(dest, torch_dtype=torch.float16)
+            shutil.rmtree(dest)
+            pipe.save_pretrained(dest)
 
     def zip_dir(self, weights_dir, out_file):
         start = time.time()
@@ -83,10 +84,13 @@ class Predictor(BasePredictor):
         self,
         repo_id: str = Input(
             description="HF repo id: username/template",
-            default="runwayml/stable-diffusion-v1-5",
         ),
         ckpt_file: str = Input(
             description="full path of ckpt file in repo",
+        ),
+        force_float16: bool = Input(
+            description="ensure float16 for speed",
+            default=True
         ),
         revision: str = Input(description="HF repo revision", default="main"),
     ) -> Path:
@@ -94,7 +98,7 @@ class Predictor(BasePredictor):
         if os.path.exists(weights_dir):
             shutil.rmtree(weights_dir)
 
-        self.download_repo(repo_id=repo_id, revision=revision, ckpt_file=ckpt_file, dest=weights_dir)
+        self.download_repo(repo_id=repo_id, revision=revision, ckpt_file=ckpt_file, dest=weights_dir, float16=force_float16)
 
         out_file = "output.zip"
         if os.path.exists(out_file):
